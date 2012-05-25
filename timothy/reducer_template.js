@@ -2,27 +2,51 @@
 
 //@REQUIRES_HERE
 
-var emit = function(value) {
-    process.stdout.write(value+"\n");  
-};
+(function() {
 
-//@REDUCER_HERE
+    var emit = function(key,value) {
+	process.stdout.write(key+"\t"+value+"\n");  
+    };
 
-var acum = "";
-var currentKey, currentBatch =[];
+    //@LOCALS_HERE
 
-process.stdin.on('data', function(data) {
-		     acum = acum + data;
-		     if(acum.indexOf("\n") != -1) {
-			 acum = processInput(acum);
-		     }
-		 });
+    //@REDUCER_HERE
 
-process.stdin.on('end', function() {
-		     if (acum.length > 0)
-			 processInput(acum);
-		     reduce(currentKey, currentBatch);
-		 });
+    var acum = "";
+    var currentKey, currentBatch =[];
 
-process.stdin.setEncoding('utf8');
-process.stdin.resume();
+    process.stdin.on('data', function(data) {
+	acum = acum + data;
+	if(acum.indexOf("\n") !== -1) {
+	    var parts = acum.split("\n");
+	    var maxIter = (acum[acum.length-1] === "\n" ? parts.length : parts.length-1);
+	    var rest  = (acum[acum.length-1] === "\n" ? "" : parts[acum.length-1]);
+	    var line, key, value, comps;
+	    for(var i=0; i<maxIter; i++) {
+		line = parts[i];
+		comps = line.split("\t");
+		key = comps[0];
+		value = comps[1];
+
+		if(currentKey != key) {
+		    if(currentKey != null) {
+			reduce(currentKey, currentBatch);
+		    } 
+		    currentKey = key;
+		    currentBatch = [value];
+		} else {
+		    currentBatch.push(value);
+		}
+	    }
+	    acum = rest;
+	}
+    });
+
+    process.stdin.on('end', function() {
+	reduce(currentKey, currentBatch);
+    });
+
+    process.stdin.setEncoding('utf8');
+    process.stdin.resume();
+
+})();

@@ -2,24 +2,33 @@
 
 //@REQUIRES_HERE
 
-var emit = function(key, value){
-    process.stdout.write(key + "\t" + value + "\n");  
-};
+(function(){
+    var emit = function(key, value){
+	process.stdout.write(key + "\t" + value + "\n");  
+    };
 
-//@MAPPER_HERE
+    //@LOCALS_HERE
 
-var acum = "";
-process.stdin.on('data', function(data) {
-		     acum = acum + data;
-		     if(acum.indexOf("\n") !== -1) {
-			 acum = map(acum);
-		     }
-		 });
+    //@MAPPER_HERE
 
-process.stdin.on('end', function() {
-		     if (acum.length > 0)
-			 map(acum);
-		 });
+    var acum = "";
+    process.stdin.on('data', function(data) {
+	acum = acum + data;
+	if(acum.indexOf("\n") !== -1) {
+	    var parts = acum.split("\n");
+	    var maxIter = (acum[acum.length-1] === "\n" ? parts.length : parts.length-1);
+	    var rest  = (acum[acum.length-1] === "\n" ? "" : parts[acum.length-1]);
+	    for(var i=0; i<maxIter; i++)
+		map(parts[i]);
+	    acum = rest;
+	}
+    });
 
-process.stdin.setEncoding('utf8');
-process.stdin.resume();
+    process.stdin.on('end', function() {
+	if (acum.length > 0)
+	    map(acum);
+    });
+
+    process.stdin.setEncoding('utf8');
+    process.stdin.resume();
+})();
