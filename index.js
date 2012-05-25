@@ -10,7 +10,7 @@ LocalDriver.prototype.execute = function(cb) {
 	if(err) {
 	    cb(err, "Error generating map reduce scripts");
 	} else {
-	    var command = "cd "+job.jobWorkingDirectory+" && mkdir ./.npmcfg && npm config set userconfig ./.npmcfg && npm config set cache . &&  npm install &> /dev/null && cat "+job.configuration.input+" | node "+job.mapperPath+" | node "+ __dirname+"/timothy/local_sorter.js | node "+job.reducerPath;
+	    var command = "cd "+job.jobWorkingDirectory+" && mkdir ./.npmcfg && npm config set userconfig ./.npmcfg && npm config set cache . &&  npm install > /dev/null && cat "+job.configuration.input+" | node "+job.mapperPath+" | node "+ __dirname+"/timothy/local_sorter.js | node "+job.reducerPath;
 	    console.log("** executing test command:\n"+command);
 	    exec(command, function(e, stdout, stderr) {
 
@@ -21,7 +21,7 @@ LocalDriver.prototype.execute = function(cb) {
 				
 		exec("rm -rf "+job.jobWorkingDirectory, function(error, stdout, stderr) {
 		    if (error !== null) {
-			console.log('exec error: ' + error);
+			console.log('(!!) exec error: ' + error);
 			cb(error, "error removing tmp directory "+job.jobWorkingDirectory+" : "+error);
 		    } else {
 			cb(e==null, (e==null ?"Error executing test command:\n"+command : null));
@@ -73,7 +73,7 @@ JobDescription.prototype.generatePackageDotJSON = function(cb) {
 
     fs.writeFile(this.packageJSONPath, JSON.stringify(pkg), function (err) {
 	if (err !== null) {
-	    console.log('error writing package.json : ' + err);
+	    console.log('(!!) error writing package.json : ' + err);
 	    cb(err);
 	} else {
 	    cb(false);
@@ -83,25 +83,30 @@ JobDescription.prototype.generatePackageDotJSON = function(cb) {
 
 JobDescription.prototype.generateShellScripts = function(cb) {
     var that = this;
-    //var mapperCommand = "#!/usr/bin/env bash\nmkdir ./.npmcfg \n npm config set userconfig ./.npmcfg \n npm config set cache . \n  npm install &> /dev/null \n node ./mapper.js";
-    var mapperCommand = "#!/usr/bin/env bash\n node -e \"var exec=require('child_process').exec; exec('readlink ./mapper.js', function(err, stdout, sterr){ var dir = stdout.split('mapper.js')[0]; exec('cd '+dir+' && mkdir ./.npmcfg && npm config set userconfig ./.npmcfg && npm config set cache . &&  npm install &> /dev/null', function(){}) })\" && ./mapper.js";
-    //var mapperCommand = "#!/usr/bin/env bash\nmkdir ./.npmcfg && mkdir ./.npmcache && npm --userconfig ./.npmcfg --cache ./.npmcache install && node ./mapper.js";
+    var mapperCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz \n mkdir -p ./.npmcfg \n npm config set userconfig ./.npmcfg \n npm config set cache . \n  npm install > /dev/null  \n node mapper.js";
     fs.writeFile(this.mapperShellScriptPath, mapperCommand, function (err) {
 	if (err !== null) {
-	    console.log('error writing package.json : ' + err);
+	    console.log('(!!) error writing package.json : ' + err);
 	    cb(err);
 	} else {
-	    //var reducerCommand = "#!/usr/bin/env bash\nmkdir ./.npmcfg \n npm config set userconfig ./.npmcfg \n npm config set cache . \n  npm install &> /dev/null \n node ./reducer.js";	    
-	    var reducerCommand = "#!/usr/bin/env bash\n node -e \"var exec=require('child_process').exec; exec('readlink ./reducer.js', function(err, stdout, sterr){ var dir = stdout.split('reducer.js')[0]; exec('cd '+dir+' && mkdir ./.npmcfg && npm config set userconfig ./.npmcfg && npm config set cache . &&  npm install &> /dev/null', function(){}) })\" && ./reducer.js";
+	    var reducerCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz && mkdir -p ./.npmcfg && npm config set userconfig ./.npmcfg && npm config set cache . &&  npm install > /dev/null && node reducer.js";
 	    fs.writeFile(that.reducerShellScriptPath, reducerCommand, function (err) {
 		if (err !== null) {
-		    console.log('error writing package.json : ' + err);
+		    console.log('(!!) error writing package.json : ' + err);
 		    cb(err);
 		} else {
 		    cb(false);
 		}
 	    });
 	}
+    });
+};
+
+JobDescription.prototype.compressFiles = function(cb) {
+    var that = this;
+    var command  = "cd "+this.jobWorkingDirectory+" && tar -zcvf "+this.compressedPath +" .";
+    exec(command, function(err, stdout, sterr) {
+	cb(err);
     });
 };
 
@@ -114,13 +119,15 @@ JobDescription.prototype.generate = function(cb) {
     this.reducerPath = this.jobWorkingDirectory+"/reducer.js";
     this.mapperShellScriptPath = this.jobWorkingDirectory+"/mapper.sh";
     this.reducerShellScriptPath = this.jobWorkingDirectory+"/reducer.sh";
-    console.log("Generated files in: "+this.jobWorkingDirectory);
+    this.compressedPath = this.jobWorkingDirectory+"/compressed.tar.gz";
+
+    console.log("* generated files in: "+this.jobWorkingDirectory);
     
     var that = this;
     exec("mkdir -p "+this.jobWorkingDirectory, 
 	 function (error, stdout, stderr) {
 	     if (error !== null) {
-		 console.log('exec error: ' + error);
+		 console.log('(!!) exec error: ' + error);
 	     } else {
 		 fs.readFile(__dirname+"/timothy/mapper_template.js", function (err, data) {
 		     data = data.toString().replace("//@MAPPER_HERE", "var map="+that.mapper+";");
@@ -142,7 +149,9 @@ JobDescription.prototype.generate = function(cb) {
 					 cb(error, that);
 				     } else {
 					 that.generateShellScripts(function(error){
-					     cb(error, that);
+					     that.compressFiles(function(error){
+						 cb(error, that);
+					     });
 					 });
 				     }
 				 });
@@ -160,7 +169,7 @@ JobDescription.prototype.execute = function(cb) {
     console.log("* executing");
     var command = this.configuration.hadoopHome+"/bin/hadoop jar "+this.configuration.hadoopHome+"/contrib/streaming/hadoop*streaming*.jar ";
     command += "-D mapred.job.name='"+this.configuration.name+"' ";
-    command += "-files "+this.mapperPath+","+this.reducerPath+","+this.packageJSONPath+","+this.mapperShellScriptPath+","+this.reducerShellScriptPath+" ";
+    command += "-files "+this.compressedPath+","+this.mapperShellScriptPath+","+this.reducerShellScriptPath+" ";
     if(this.configuration.config)
 	command += "-conf '"+this.configuration.config+"' ";
     command += "-inputformat '"+this.configuration.inputFormat+"' ";
@@ -270,7 +279,7 @@ timothy.run = function(cb) {
 			    cb(true);
 			} else {
 			    exec("rm -rf "+that.currentJob.jobWorkingDirectory, function(error, stdout, stderr) {
-
+			     
 				if (error !== null) {
 				    console.log('exec error: ' + error);
 				    cb(error, "error removing tmp directory "+that.currentJob.jobWorkingDirectory+" : "+error);
