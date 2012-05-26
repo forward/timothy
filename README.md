@@ -6,6 +6,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
 
 ## Basic Example
 
+```javascript
     // require timothy
     require('timothy')
         // basic configuration for the job: hadoop conf, input, output, name, etc
@@ -28,6 +29,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         // run function, creates the job, uploaded it and blocks until the
         // the execution has finished
         .run();
+```
 
 ## Testing in the local machine
 
