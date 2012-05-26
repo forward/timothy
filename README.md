@@ -4,7 +4,7 @@ timothy: a Node.js library for building Hadoop jobs in JS
 Timothy's primary goal is to make The Yellow Elephant rich and famous.
 
 
-# Basic Example
+## Basic Example
 
     // require timothy
     require('timothy')
@@ -29,7 +29,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         // the execution has finished
         .run();
 
-# Testing in the local machine
+## Testing in the local machine
 
     require('timothy')
         .configure({input: "~/Desktop/test_input.txt"})
@@ -45,7 +45,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         // from the command line
         .runLocal("~/Desktop/test_output.txt");
 
-# Initialising a job
+## Initialising a job
 
     require('timothy')
         .configure({	
@@ -75,7 +75,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         .run();
 
 
-# Using node libraries
+## Using node libraries
 
     require('timothy')
         .configure({	
