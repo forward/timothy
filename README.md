@@ -33,6 +33,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
 
 ## Testing in the local machine
 
+```javascript
     require('timothy')
         .configure({input: "~/Desktop/test_input.txt"})
         .map(function(line){
@@ -46,9 +47,11 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         // runLocal can be used instead of run to simulte the job execution 
         // from the command line
         .runLocal("~/Desktop/test_output.txt");
+```
 
 ## Initialising a job
 
+```javascript
     require('timothy')
         .configure({	
              config: "./hadoop.xml",
@@ -75,10 +78,11 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
             emit(word, counts.length);
         })
         .run();
-
+```
 
 ## Using node libraries
 
+```javascript
     require('timothy')
         .configure({	
              config: "./hadoop.xml",
@@ -109,3 +113,4 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
             emit(uuid.v1(),"10000000");
         })
         .run();
+```
