@@ -32,8 +32,10 @@ process.stdin.on('data', function(data) {
 			 var parts = acum.split("\n");
 			 var maxIter = (acum[acum.length-1] === "\n" ? parts.length : parts.length-1);
 			 var rest  = (acum[acum.length-1] === "\n" ? "" : parts[acum.length-1]);
-			 for(var i=0; i<maxIter; i++)
-			     sort(parts[i]);
+			 for(var i=0; i<maxIter; i++) {
+			     if(parts[i] != null && parts[i].length > 0)
+				 sort(parts[i]);
+			 }
 			 acum = rest;
 		     }
 		 });

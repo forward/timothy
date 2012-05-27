@@ -7,18 +7,29 @@
 	process.stdout.write(key + "\t" + value + "\n");  
     };
 
-     var mapKeyValue = function(line) {
-	 if(map.length === 1) {
-	     map(line);
-	 } else if(map.length === 2) {
-	     var tokens = line.split("\t");
-	     var key = tokens[0];
-	     var value = tokens.slice(1, tokens.length-1).join("\t");
-	     map(key, value);    
-	 } else {
-	     throw new Error("Mapper function arity must be 1 or 2");
-	 }
-     };
+    var updateCounter = function(group, counter, amout) {
+	process.stderr.write("reporter:counter:"+group+","+counter+","+amout);
+    };
+
+    var updateStatus = function(message) {
+	process.stderr.write("reporter:status:"+message);
+    };
+
+
+    var mapKeyValue = function(line) {
+	if(line.length === 0)
+	    return;
+	if(map.length === 1) {
+	    map(line);
+	} else if(map.length === 2) {
+	    var tokens = line.split("\t");
+	    var key = tokens[0];
+	    var value = tokens.slice(1, tokens.length).join("\t");
+	    map(key, value);    
+	} else {
+	    throw new Error("Mapper function arity must be 1 or 2");
+	}
+    };
 
     //@LOCALS_HERE
 

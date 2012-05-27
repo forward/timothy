@@ -94,18 +94,13 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         // in a NPM package.json file
         .dependencies({"node-uuid":"1.3.3"})
         .setup(function(){
-            global.x = 0;
-            global.inc = function() {
-                global.x = global.x + 1;
-            };
             // libraries can be required in the setup function
             global.uuid = require('node-uuid');
         })
         .map(function(line){
             var words = line.split(" ");
             for(var i=0; i<words.length; i++) {
-                inc();
-                emit(words[i], x);
+                   emit(words[i], 1);
             }
         })
         .reduce(function(word,counts){
@@ -114,3 +109,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         })
         .run();
 ```
+
+## Status and counters
+
+Status and counters for the job can be updated using the *updateStatus* and *updateCounter* functions.

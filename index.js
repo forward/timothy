@@ -169,20 +169,45 @@ JobDescription.prototype.execute = function(cb) {
     console.log("* executing");
     var command = this.configuration.hadoopHome+"/bin/hadoop jar "+this.configuration.hadoopHome+"/contrib/streaming/hadoop*streaming*.jar ";
     command += "-D mapred.job.name='"+this.configuration.name+"' ";
+    if(this.configuration.numMapTasks != null)
+	    command += "-D mapred.map.tasks="+this.configuration.numMapTasks+" ";
+
+    if(this.configuration.numRedTasks != null)
+	    command += "-D mapred.reduce.tasks="+this.configuration.numMapTasks+" ";
+
+    for(var prop in this.configuration) {
+	if(prop.indexOf(".") != null && prop.split(".").length > 2) {
+	    command += "-D "+prop+"="+this.configuration[prop]+" ";
+	}
+    }
+
     command += "-files "+this.compressedPath+","+this.mapperShellScriptPath+","+this.reducerShellScriptPath+" ";
     if(this.configuration.config)
 	command += "-conf '"+this.configuration.config+"' ";
     command += "-inputformat '"+this.configuration.inputFormat+"' ";
     command += "-outputformat '"+this.configuration.outputFormat+"' ";
-    command += "-input "+this.configuration.input+" ";
+    if(this.configuration.input.constructor === Array) {
+	for(var i=0; i<this.configuration.input.length; i++)
+	    command += "-input "+this.configuration.input[i]+" ";	    
+    } else {
+	command += "-input "+this.configuration.input+" ";
+    }
+
+    if(this.configuration.combiner != null)
+	command += "-combiner "+this.configuration.combiner+" ";
+    if(this.configuration.dfs != null)
+	command += "-dfs "+this.configuration.dfs+" ";
+    if(this.configuration.jt != null)
+	command += "-jt "+this.configuration.jt+" ";
+    if(this.configuration.partitioner != null)
+	command += "-partitioner "+this.configuration.partitioner+" ";
+    
     var mapperScript = this.mapperPath.split("/");
     mapperScript = mapperScript[mapperScript.length-1]
     command += "-mapper 'mapper.sh' ";
-    //command += "-mapper 'node "+mapperScript+"' ";
     var reducerScript = this.reducerPath.split("/");
     reducerScript = reducerScript[reducerScript.length-1]
     command += "-reducer 'reducer.sh' ";
-    //command += "-reducer 'node "+reducerScript+"' ";
     command += "-output "+this.configuration.output+" ";
 
     console.log("** executing Hadoop command:\n"+command);
@@ -193,7 +218,7 @@ JobDescription.prototype.execute = function(cb) {
 	console.log("*** ERROR:\n");
 	console.log(stderr);
 
-	cb(e==null, (e==null ?"Error executing Hadoop command:\n"+command : null));
+	cb(e==null, (e==null ? "Error executing Hadoop command:\n"+command : null));
     });
 };
 

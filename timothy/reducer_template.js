@@ -8,6 +8,14 @@
 	process.stdout.write(key+"\t"+value+"\n");  
     };
 
+    var updateCounter = function(group, counter, amout) {
+	process.stderr.write("reporter:counter:"+group+","+counter+","+amout);
+    };
+
+    var updateStatus = function(message) {
+	process.stderr.write("reporter:status:"+message);
+    };
+
     //@LOCALS_HERE
 
     //@REDUCER_HERE
@@ -24,18 +32,18 @@
 	    var line, key, value, comps;
 	    for(var i=0; i<maxIter; i++) {
 		line = parts[i];
-		comps = line.split("\t");
-		key = comps[0];
-		value = comps[1];
+		if(line != null && line.length>0) {
+		    comps = line.split("\t");
+		    key = comps[0];
+		    value = comps[1];
 
-		if(currentKey != key) {
-		    if(currentKey != null) {
-			reduce(currentKey, currentBatch);
-		    } 
-		    currentKey = key;
-		    currentBatch = [value];
-		} else {
-		    currentBatch.push(value);
+		    if(currentKey != key) {
+			if(currentKey != null)
+			    reduce(currentKey, currentBatch);
+			currentKey = key;
+			currentBatch = [value];
+		    } else
+			currentBatch.push(value);
 		}
 	    }
 	    acum = rest;
