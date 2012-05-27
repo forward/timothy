@@ -328,8 +328,13 @@ timothy.runLocal = function(inputPath, cb) {
 
     if(inputPath == null)
 	throw new Exception("A local input path must be provided");
-    else
+    else {
+	if(this.currentJob.configuration == null)
+	    this.currentJob.configuration = {};
+	if(this.currentJob.configuration.name == null)
+	    this.currentJob.configuration.name = "Timothy local job";
 	this.currentJob.configuration.input = inputPath;
+    }
 	
     var driver = new LocalDriver(this.currentJob);
     driver.execute(cb);

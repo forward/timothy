@@ -1,10 +1,4 @@
 require('../index')
-    .configure({	
-	config: './hadoop.xml',
-	input: "/test2.txt",
-	output: "/processed_"+(new Date().getTime()),
-	name: "Timothy Group Sum Example"
-    })
     .map(function(key, value){
 	updateStatus("\ngot key "+key+" -> "+value+"\n");
 	emit(key, value);
@@ -17,5 +11,5 @@ require('../index')
 
 	emit(key,acum);
     })
-    .run();
-    //.runLocal("/Users/antonio/Desktop/test2.txt");
+    //.run();
+    .runLocal("/Users/antonio/Desktop/test2.txt");

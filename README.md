@@ -35,7 +35,6 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
 
 ```javascript
     require('timothy')
-        .configure({input: "~/Desktop/test_input.txt"})
         .map(function(line){
             var words = line.split(" ");
             for(var i=0; i<words.length; i++)
@@ -46,7 +45,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         })
         // runLocal can be used instead of run to simulte the job execution 
         // from the command line
-        .runLocal("~/Desktop/test_output.txt");
+        .runLocal("~/Desktop/test_input.txt");
 ```
 
 ## Initialising a job
