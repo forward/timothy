@@ -5,6 +5,9 @@
 (function() {
 
     var emit = function() {
+	var acum = [];
+	for(var i=0; i<arguments.length; i++)
+	    acum.push(arguments[i]);
 	process.stdout.write(arguments.join("\t")+"\n");  	    
     };
 
