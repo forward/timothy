@@ -4,8 +4,8 @@
 
 (function() {
 
-    var emit = function(key,value) {
-	process.stdout.write(key+"\t"+value+"\n");  
+    var emit = function() {
+	process.stdout.write(arguments.join("\t")+"\n");  	    
     };
 
     var updateCounter = function(group, counter, amout) {
