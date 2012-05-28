@@ -218,6 +218,8 @@ JobDescription.prototype.execute = function(cb) {
 	command += "-jt "+this.configuration.jt+" ";
     if(this.configuration.partitioner != null)
 	command += "-partitioner "+this.configuration.partitioner+" ";
+    if(this.configuration.cmdenv != null)
+	command += "-cmdenv "+this.configuration.cmdenv+" ";
     
     var mapperScript = this.mapperPath.split("/");
     mapperScript = mapperScript[mapperScript.length-1]
