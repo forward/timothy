@@ -64,7 +64,7 @@ JobDescription.prototype.validate = function(cb) {
 };
 
 JobDescription.prototype.generatePackageDotJSON = function(cb) {
-    var pkg = {name: this.configuration.name.replace(/ /g,"_").toLowerCase(),
+    var pkg = {name: this.configuration.name.replace(/[^a-z0-9]/g,"_").toLowerCase(),
 	       version: "1.0.0",
 	       dependencies: this.dependencies,
 	       engine: "node >=0.6.0"}

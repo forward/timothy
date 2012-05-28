@@ -8,7 +8,7 @@
 	var acum = [];
 	for(var i=0; i<arguments.length; i++)
 	    acum.push(arguments[i]);
-	process.stdout.write(arguments.join("\t")+"\n");  	    
+	process.stdout.write(acum.join("\t")+"\n");  	    
     };
 
     var updateCounter = function(group, counter, amout) {
