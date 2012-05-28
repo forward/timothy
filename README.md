@@ -84,6 +84,37 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         .run();
 ```
 
+## Passing Environment Variables
+
+```javascript
+    (function(offset1,offset2){
+
+        require('timothy')
+            .configure({	
+                 config: "./hadoop.xml",
+                 input:  "/test.txt",
+                 output: "/processed_"+(new Date().getTime()),
+                 name:   "Timothy Word Count Example",
+                 //environment variables
+                 cmdenv: "offset1="+offset1+",offset2="+offset2 
+            })
+            .map(function(line){
+    	    // mapper and reducer process can now access
+                // the variables through process.env
+                var offset1 = parseInt(process.env['offset1']);
+                var words = line.split(" ");
+                for(var i=0; i<words.length; i++)
+                    emit(words[i], 1+offset1);
+            })
+            .reduce(function(word,counts){
+                var offset2 = parseInt(process.env['offset2']);
+                emit(word, counts.length+offset2);
+            })
+            .run();
+
+    })(10,40);
+```
+
 ## Using node libraries
 
 ```javascript
