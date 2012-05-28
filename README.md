@@ -3,6 +3,9 @@ timothy: a Node.js library for building Hadoop jobs in JS
 
 Timothy's primary goal is to make The Yellow Elephant rich and famous.
 
+## Installation
+
+    npm install timothy
 
 ## Basic Example
 
@@ -11,10 +14,12 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
     require('timothy')
         // basic configuration for the job: hadoop conf, input, output, name, etc
         .configure({	
+             hadoopHome: "/path/to/hadoop/home" // this can be provided from environment
              config: "./hadoop.xml",
              input:  "/test.txt",
              output: "/processed_"+(new Date().getTime()),
-             name:   "Timothy Word Count Example"
+             name:   "Timothy Word Count Example",
+	     "mapred.map.tasks": 10 // properties can also be passed
         })
         // map function: one (line) or two (key, value) arguments
         .map(function(line){
