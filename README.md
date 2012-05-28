@@ -145,12 +145,19 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         .run();
 ```
 
+## Status and counters
+
+Status and counters for the job can be updated using the *updateStatus* and *updateCounter* functions.
+
 ## Caveats
 
 *map*, *reduce* and *setup* functions are used as templates for the job functions. Trying to use values from these function definition closures will fail when running the actual job. Use the 'cmdenv' configuration to pass values to the job instead.
 
 At the moment, the *setup* function does not handle blocking asynchronous operations. If one of these operations is invoked, the script will continue executing the *map*/*reduce* function before the asynchronous callback is executed.
 
-## Status and counters
 
-Status and counters for the job can be updated using the *updateStatus* and *updateCounter* functions.
+## About
+
+Forward Internet Group (c) 2012. Available under the LGPL V3 license.
+
+<forward-timothy@googlegroups.com>, <abhinay.mehta@forward.co.uk>, <antonio.garrote@forward.co.uk>
