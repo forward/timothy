@@ -41,7 +41,7 @@
 	if(acum.indexOf("\n") !== -1) {
 	    var parts = acum.split("\n");
 	    var maxIter = (acum[acum.length-1] === "\n" ? parts.length : parts.length-1);
-	    var rest  = (acum[acum.length-1] === "\n" ? "" : parts[acum.length-1]);
+	    var rest  = (acum[acum.length-1] === "\n" ? "" : parts[parts.length-1]);
 	    for(var i=0; i<maxIter; i++) {
 		mapKeyValue(parts[i]);
 	    }
