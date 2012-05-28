@@ -19,7 +19,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
              input:  "/test.txt",
              output: "/processed_"+(new Date().getTime()),
              name:   "Timothy Word Count Example",
-	     "mapred.map.tasks": 10 // properties can also be passed
+             "mapred.map.tasks": 10 // properties can also be passed
         })
         // map function: one (line) or two (key, value) arguments
         .map(function(line){
