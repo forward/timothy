@@ -64,7 +64,7 @@ JobDescription.prototype.validate = function(cb) {
 };
 
 JobDescription.prototype.generatePackageDotJSON = function(cb) {
-    var pkg = {name: this.configuration.name.replace(/[^a-z0-9]/g,"_").toLowerCase(),
+    var pkg = {name: this.configuration.name.replace(/[^a-zA-Z0-9]/g,"_").toLowerCase(),
 	       version: "1.0.0",
 	       dependencies: this.dependencies,
 	       engine: "node >=0.6.0"}
@@ -124,7 +124,7 @@ JobDescription.prototype.compressFiles = function(cb) {
  * Generates map/reduce scripts and package them
  */
 JobDescription.prototype.generate = function(cb) {
-    this.jobWorkingDirectory = "/tmp/timothy/"+this.configuration.name.replace(/ /g, "_").toLowerCase()+"_"+(new Date().getTime())+"_"+(Math.floor(Math.random() * 100000));
+    this.jobWorkingDirectory = "/tmp/timothy/"+this.configuration.name.replace(/[^a-zA-Z0-9]/g,"_").toLowerCase()+"_"+(new Date().getTime())+"_"+(Math.floor(Math.random() * 100000));
     this.mapperPath = this.jobWorkingDirectory+"/mapper.js";
     this.reducerPath = this.jobWorkingDirectory+"/reducer.js";
     this.mapperShellScriptPath = this.jobWorkingDirectory+"/mapper.sh";
