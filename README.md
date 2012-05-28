@@ -1,7 +1,7 @@
-timothy: a Node.js library for building Hadoop jobs in JS
-=========================================================
+timothy: Node.js library for writing Hadoop MapReduce jobs in JS
+===============================================================
 
-Timothy's primary goal is to make The Yellow Elephant rich and famous.
+Timothy's primary goal is to make Hadoop's Yellow Elephant rich and famous.
 
 ## Installation
 
@@ -31,7 +31,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         .reduce(function(word,counts){
             emit(word, counts.length);
         })
-        // run function, creates the job, uploads it and blocks until the
+        // run function, creates the job, uploads it and blocks until 
         // the execution has finished
         .run();
 ```
@@ -48,7 +48,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         .reduce(function(word,counts){
             emit(word, counts.length);
         })
-        // runLocal can be used instead of run to simulte the job execution 
+        // runLocal can be used instead of run to simulate the job execution 
         // from the command line
         .runLocal("~/Desktop/test_input.txt");
 ```
