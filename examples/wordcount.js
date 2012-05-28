@@ -1,8 +1,8 @@
 require('../index')
     .configure({	
 	config: './hadoop.xml',
-	input: "/test.txt",
-	output: "/processed_"+(new Date().getTime()),
+	input: "/tmp/loremipsum.txt",
+	output: "/tmp/processed_"+(new Date().getTime()),
 	name: "Timothy Word Count Example",
 	"mapred.map.tasks": 10
     })
@@ -29,4 +29,4 @@ require('../index')
         emit(uuid.v1(),"10000000");
     })
     .run();
-    //.runLocal("/Users/antonio/Desktop/test.txt");
+    //.runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt");

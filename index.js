@@ -83,13 +83,13 @@ JobDescription.prototype.generatePackageDotJSON = function(cb) {
 
 JobDescription.prototype.generateShellScripts = function(cb) {
     var that = this;
-    var mapperCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz \n readlink compressed.tar.gz | xargs dirname | xargs node -e \" var exec=require('child_process').exec; process.stderr.write('cd '+process.argv[1]+' && ./mapper.js'); exec('cd '+process.argv[1]+' && ./mapper.js', function(){}); \"";
+    var mapperCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz > /dev/null && node mapper.js";
     fs.writeFile(this.mapperShellScriptPath, mapperCommand, function (err) {
 	if (err !== null) {
 	    console.log('(!!) error writing package.json : ' + err);
 	    cb(err);
 	} else {
-	    var reducerCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz \n readlink compressed.tar.gz | xargs dirname | xargs node -e \" var exec=require('child_process').exec; exec('cd '+process.argv[1]+' && ./reducer.js', function(){}); \"";
+	    var reducerCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz > /dev/null && node reducer.js";
 	    fs.writeFile(that.reducerShellScriptPath, reducerCommand, function (err) {
 		if (err !== null) {
 		    console.log('(!!) error writing package.json : ' + err);

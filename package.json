@@ -1,0 +1,13 @@
+{"name":"timothy",
+ "version":"0.1.0",
+ "description":"Node.js library for running Hadoop jobs",
+ "keywords":["hadoop",
+	     "map-reduce"],
+ "author":{"name":"Forward Internet Group",
+	   "email":"<abhinay.mehta@forward.co.uk>,<antonio.garrote@forward.co.uk>"},
+ "engines":{"node":">=0.6.1"},
+ "repository":{"type":"git",
+	       "url":"https://github.com/forward/timothy.git"},
+ "licenses":[{"type":"LGPL V3",
+	      "url":"http://www.gnu.org/licenses/lgpl.html"}]}
+
