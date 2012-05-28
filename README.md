@@ -26,7 +26,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         .reduce(function(word,counts){
             emit(word, counts.length);
         })
-        // run function, creates the job, uploaded it and blocks until the
+        // run function, creates the job, uploads it and blocks until the
         // the execution has finished
         .run();
 ```

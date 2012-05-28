@@ -83,13 +83,13 @@ JobDescription.prototype.generatePackageDotJSON = function(cb) {
 
 JobDescription.prototype.generateShellScripts = function(cb) {
     var that = this;
-    var mapperCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz \n mkdir -p ./.npmcfg \n npm config set userconfig ./.npmcfg \n npm config set cache . \n  npm install > /dev/null  \n node mapper.js";
+    var mapperCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz \n readlink compressed.tar.gz | xargs dirname | xargs node -e \" var exec=require('child_process').exec; process.stderr.write('cd '+process.argv[1]+' && ./mapper.js'); exec('cd '+process.argv[1]+' && ./mapper.js', function(){}); \"";
     fs.writeFile(this.mapperShellScriptPath, mapperCommand, function (err) {
 	if (err !== null) {
 	    console.log('(!!) error writing package.json : ' + err);
 	    cb(err);
 	} else {
-	    var reducerCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz && mkdir -p ./.npmcfg && npm config set userconfig ./.npmcfg && npm config set cache . &&  npm install > /dev/null && node reducer.js";
+	    var reducerCommand = "#!/usr/bin/env bash\n tar -zxvf compressed.tar.gz \n readlink compressed.tar.gz | xargs dirname | xargs node -e \" var exec=require('child_process').exec; exec('cd '+process.argv[1]+' && ./reducer.js', function(){}); \"";
 	    fs.writeFile(that.reducerShellScriptPath, reducerCommand, function (err) {
 		if (err !== null) {
 		    console.log('(!!) error writing package.json : ' + err);
@@ -102,9 +102,19 @@ JobDescription.prototype.generateShellScripts = function(cb) {
     });
 };
 
+JobDescription.prototype.installLocalModules = function(cb) {
+    var that = this;
+    var command = "cd "+that.jobWorkingDirectory+" && npm install";
+    console.log("** Installing local modules");
+    exec(command, function(err, stdout, stderr) {
+	cb(err);
+    });
+};
+
 JobDescription.prototype.compressFiles = function(cb) {
     var that = this;
     var command  = "cd "+this.jobWorkingDirectory+" && tar -zcvf "+this.compressedPath +" .";
+    console.log("** Compressing package");
     exec(command, function(err, stdout, sterr) {
 	cb(err);
     });
@@ -148,10 +158,17 @@ JobDescription.prototype.generate = function(cb) {
 				     if(error) {
 					 cb(error, that);
 				     } else {
-					 that.generateShellScripts(function(error){
-					     that.compressFiles(function(error){
+					 that.installLocalModules(function(error) {
+					     if(error) {
 						 cb(error, that);
-					     });
+					     } else {
+
+						 that.generateShellScripts(function(error){
+						     that.compressFiles(function(error){
+							 cb(error, that);
+						     });
+						 });
+					     }
 					 });
 				     }
 				 });
@@ -313,7 +330,7 @@ timothy.run = function(cb) {
 				    that.currentJob = null;
 				    // normal return
 				    cb(false);
-				}
+			      }
 			    });
 			}
 		    });
