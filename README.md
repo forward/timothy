@@ -99,7 +99,7 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
                  cmdenv: "offset1="+offset1+",offset2="+offset2 
             })
             .map(function(line){
-    	    // mapper and reducer process can now access
+    	        // mapper and reducer process can now access
                 // the variables through process.env
                 var offset1 = parseInt(process.env['offset1']);
                 var words = line.split(" ");
@@ -144,6 +144,12 @@ Timothy's primary goal is to make The Yellow Elephant rich and famous.
         })
         .run();
 ```
+
+## Caveats
+
+*map*, *reduce* and *setup* functions are used as templates for the job functions. Trying to use values from these function definition closures will fail when running the actual job. Use the 'cmdenv' configuration to pass values to the job instead.
+
+At the moment, the *setup* function does not handle blocking asynchronous operations. If one of these operations is invoked, the script will continue executing the *map*/*reduce* function before the asynchronous callback is executed.
 
 ## Status and counters
 
