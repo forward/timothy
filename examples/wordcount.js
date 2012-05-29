@@ -31,6 +31,6 @@ require('../index')
     })
     .run(function(err){
 	     console.log("**FINISHED");
-	     console.log(err)
+	     console.log(err);
     });
     //.runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt");

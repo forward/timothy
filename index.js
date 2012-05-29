@@ -32,7 +32,9 @@ LocalDriver.prototype.execute = function(cb) {
     });
 };
 
-var JobDescription = function() { };
+var JobDescription = function() { 
+    this.filesToCompress = [];
+};
 
 /**
  * Validates description and throw meaningful errors
@@ -67,9 +69,10 @@ JobDescription.prototype.generatePackageDotJSON = function(cb) {
     var pkg = {name: this.configuration.name.replace(/[^a-zA-Z0-9]/g,"_").toLowerCase(),
 	       version: "1.0.0",
 	       dependencies: this.dependencies,
-	       engine: "node >=0.6.0"}
+	       engine: "node >=0.6.0"};
 
     this.packageJSONPath = this.jobWorkingDirectory+"/package.json";
+    this.filesToCompress.push("package.json");
 
     fs.writeFile(this.packageJSONPath, JSON.stringify(pkg), function (err) {
 	if (err !== null) {
@@ -113,7 +116,7 @@ JobDescription.prototype.installLocalModules = function(cb) {
 
 JobDescription.prototype.compressFiles = function(cb) {
     var that = this;
-    var command  = "cd "+this.jobWorkingDirectory+" && tar --exclude compressed.tar.gz -zcvf "+this.compressedPath +" .";
+    var command  = "cd "+this.jobWorkingDirectory+" && tar --exclude compressed.tar.gz -zcvf "+this.compressedPath +" "+this.filesToCompress.join(" ");
     console.log("** Compressing package");
     exec(command, function(err, stdout, sterr) {
 	cb(err);
@@ -131,6 +134,10 @@ JobDescription.prototype.generate = function(cb) {
     this.reducerShellScriptPath = this.jobWorkingDirectory+"/reducer.sh";
     this.compressedPath = this.jobWorkingDirectory+"/compressed.tar.gz";
 
+    this.filesToCompress = this.filesToCompress.concat(["mapper.js", "reducer.js", "mapper.sh", "reducer.sh"]);
+    if (this.dependencies != null) {
+	this.filesToCompress.push("node_modules");
+    }
     console.log("* generated files in: "+this.jobWorkingDirectory);
     
     var that = this;
@@ -241,7 +248,7 @@ JobDescription.prototype.execute = function(cb) {
 	console.log("*** ERROR:\n");
 	console.log(stderr);
 
-	cb(e==null, (e==null ? "Error executing Hadoop command:\n"+command : null));
+	cb(e!=null, (e!=null ? "Error executing Hadoop command:\n"+command : null));
     });
 };
 
