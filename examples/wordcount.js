@@ -4,6 +4,7 @@ require('../index')
 	input: "/tmp/loremipsum.txt",
 	output: "/tmp/processed_"+(new Date().getTime()),
 	name: "Timothy Word Count Example",
+        cmdenv: "var=",
 	"mapred.map.tasks": 10
     })
     .dependencies({"node-uuid":"1.3.3"})
@@ -28,5 +29,8 @@ require('../index')
 	emit(word, counts.length);
         emit(uuid.v1(),"10000000");
     })
-    .run();
+    .run(function(err){
+	     console.log("**FINISHED");
+	     console.log(err)
+    });
     //.runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt");

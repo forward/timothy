@@ -113,7 +113,7 @@ JobDescription.prototype.installLocalModules = function(cb) {
 
 JobDescription.prototype.compressFiles = function(cb) {
     var that = this;
-    var command  = "cd "+this.jobWorkingDirectory+" && tar -zcvf "+this.compressedPath +" .";
+    var command  = "cd "+this.jobWorkingDirectory+" && tar --exclude compressed.tar.gz -zcvf "+this.compressedPath +" .";
     console.log("** Compressing package");
     exec(command, function(err, stdout, sterr) {
 	cb(err);
