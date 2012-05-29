@@ -24,7 +24,7 @@ LocalDriver.prototype.execute = function(cb) {
 			console.log('(!!) exec error: ' + error);
 			cb(error, "error removing tmp directory "+job.jobWorkingDirectory+" : "+error);
 		    } else {
-			cb(e==null, (e==null ?"Error executing test command:\n"+command : null));
+			cb(e, (e==null ?"Error executing test command:\n"+command : null));
 		    }
 		});
 	    });
@@ -58,10 +58,10 @@ JobDescription.prototype.validate = function(cb) {
 
     if(notifications.errors.length > 0) {
 	console.log("* validation ok");
-	cb(false, notifications)
+	cb(null, notifications)
     } else {
 	console.log("* validation fail");
-	cb(true)
+	cb("Validation fail")
     }
 };
 
@@ -77,10 +77,8 @@ JobDescription.prototype.generatePackageDotJSON = function(cb) {
     fs.writeFile(this.packageJSONPath, JSON.stringify(pkg), function (err) {
 	if (err !== null) {
 	    console.log('(!!) error writing package.json : ' + err);
-	    cb(err);
-	} else {
-	    cb(false);
 	}
+	cb(err);
     });
 };
 
@@ -96,10 +94,8 @@ JobDescription.prototype.generateShellScripts = function(cb) {
 	    fs.writeFile(that.reducerShellScriptPath, reducerCommand, function (err) {
 		if (err !== null) {
 		    console.log('(!!) error writing package.json : ' + err);
-		    cb(err);
-		} else {
-		    cb(false);
 		}
+		cb(err);
 	    });
 	}
     });
@@ -258,7 +254,7 @@ JobDescription.prototype.execute = function(cb) {
 	console.log("*** ERROR:\n");
 	console.log(stderr);
 
-	cb(e!=null, (e!=null ? "Error executing Hadoop command:\n"+command : null));
+	cb(e, (e!==null ? "Error executing Hadoop command:\n"+command : null));
     });
 };
 
@@ -341,7 +337,7 @@ timothy.run = function(cb) {
 		} else {
 		    job.execute(function(e,msg) {
 			if(e) {
-			    cb(true);
+			    cb(e);
 			} else {
 			    exec("rm -rf "+that.currentJob.jobWorkingDirectory, function(error, stdout, stderr) {
 			     
@@ -352,7 +348,7 @@ timothy.run = function(cb) {
 				    // ready to process another job
 				    that.currentJob = null;
 				    // normal return
-				    cb(false);
+				    cb(null);
 			      }
 			    });
 			}
