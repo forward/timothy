@@ -154,38 +154,48 @@ JobDescription.prototype.generate = function(cb) {
 			 data = data.replace("//@LOCALS_HERE","var _that=this;("+that.setupFn.toString().replace(/global/g,"_that")+")();");
 
 		     fs.writeFile(that.mapperPath, data, function (err) {
+			 if(err) {
+			     cb(err);
+			 }  else {
 
-			 fs.readFile(__dirname+"/timothy/reducer_template.js", function (err, data) {
-			     data = data.toString().replace("//@REDUCER_HERE", "var reduce="+that.reducer+";");
+			     fs.readFile(__dirname+"/timothy/reducer_template.js", function (err, data) {
+				 data = data.toString().replace("//@REDUCER_HERE", "var reduce="+that.reducer+";");
 
-			     if(that.setupFn != null)
-				 data = data.replace("//@LOCALS_HERE","var _that=this; ("+that.setupFn.toString().replace(/global/g,"_that")+")();");
+				 if(that.setupFn != null)
+				     data = data.replace("//@LOCALS_HERE","var _that=this; ("+that.setupFn.toString().replace(/global/g,"_that")+")();");
 
-			     fs.writeFile(that.reducerPath, data, function (err) {
-				 that.generatePackageDotJSON(function(error){
-				     if(error) {
-					 cb(error, that);
-				     } else {
-					 that.installLocalModules(function(error) {
+				 fs.writeFile(that.reducerPath, data, function (err) {
+				     if(err) {
+					 cb(err);
+				     }  else {
+
+					 that.generatePackageDotJSON(function(error){
 					     if(error) {
 						 cb(error, that);
 					     } else {
-						 that.generateShellScripts(function(error){
+						 that.installLocalModules(function(error) {
 						     if(error) {
-                                                         cb(error, that);							 
+							 cb(error, that);
 						     } else {
-							 that.compressFiles(function(error){
-							     cb(error, that);
+							 that.generateShellScripts(function(error){
+							     if(error) {
+								 cb(error, that);							 
+							     } else {
+								 that.compressFiles(function(error){
+								     cb(error, that);
+								 });
+							     }
 							 });
 						     }
 						 });
 					     }
 					 });
+
 				     }
 				 });
 			     });
-			 });
 
+			 }
 		     });	
 		 });
 	     }
