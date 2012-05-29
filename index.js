@@ -138,6 +138,7 @@ JobDescription.prototype.generate = function(cb) {
 	 function (error, stdout, stderr) {
 	     if (error !== null) {
 		 console.log('(!!) exec error: ' + error);
+		 cb(error);
 	     } else {
 		 fs.readFile(__dirname+"/timothy/mapper_template.js", function (err, data) {
 		     data = data.toString().replace("//@MAPPER_HERE", "var map="+that.mapper+";");
@@ -162,11 +163,14 @@ JobDescription.prototype.generate = function(cb) {
 					     if(error) {
 						 cb(error, that);
 					     } else {
-
 						 that.generateShellScripts(function(error){
-						     that.compressFiles(function(error){
-							 cb(error, that);
-						     });
+						     if(error) {
+                                                         cb(error, that);							 
+						     } else {
+							 that.compressFiles(function(error){
+							     cb(error, that);
+							 });
+						     }
 						 });
 					     }
 					 });
