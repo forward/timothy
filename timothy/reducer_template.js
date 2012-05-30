@@ -23,15 +23,15 @@
 
     //@REDUCER_HERE
 
-    var acum = "";
-    var currentKey, currentBatch =[];
+    var ___acum = "";
+    var ___currentKey, ___currentBatch =[];
 
     process.stdin.on('data', function(data) {
-	acum = acum + data;
-	if(acum.indexOf("\n") !== -1) {
-	    var parts = acum.split("\n");
-	    var maxIter = (acum[acum.length-1] === "\n" ? parts.length : parts.length-1);
-	    var rest  = (acum[acum.length-1] === "\n" ? "" : parts[parts.length-1]);
+	___acum = ___acum + data;
+	if(___acum.indexOf("\n") !== -1) {
+	    var parts = ___acum.split("\n");
+	    var maxIter = (___acum[___acum.length-1] === "\n" ? parts.length : parts.length-1);
+	    var rest  = (___acum[___acum.length-1] === "\n" ? "" : parts[parts.length-1]);
 	    var line, key, value, comps;
 	    for(var i=0; i<maxIter; i++) {
 		line = parts[i];
@@ -40,21 +40,21 @@
 		    key = comps[0];
 		    value = comps[1];
 
-		    if(currentKey != key) {
-			if(currentKey != null)
-			    reduce(currentKey, currentBatch);
-			currentKey = key;
-			currentBatch = [value];
+		    if(___currentKey != key) {
+			if(___currentKey != null)
+			    reduce(___currentKey, ___currentBatch);
+			___currentKey = key;
+			___currentBatch = [value];
 		    } else
-			currentBatch.push(value);
+			___currentBatch.push(value);
 		}
 	    }
-	    acum = rest;
+	    ___acum = rest;
 	}
     });
 
     process.stdin.on('end', function() {
-	reduce(currentKey, currentBatch);
+	reduce(___currentKey, ___currentBatch);
     });
 
     process.stdin.setEncoding('utf8');

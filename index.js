@@ -1,3 +1,4 @@
+
 var fs = require('fs');
 var exec = require('child_process').exec;
 
@@ -143,56 +144,42 @@ JobDescription.prototype.generate = function(cb) {
 		 console.log('(!!) exec error: ' + error);
 		 cb(error);
 	     } else {
-		 fs.readFile(__dirname+"/timothy/mapper_template.js", function (err, data) {
-		     data = data.toString().replace("//@MAPPER_HERE", "var map="+that.mapper+";");
+		 data = fs.readFileSync(__dirname+"/timothy/mapper_template.js", "utf8");
+		 data = data.replace("//@MAPPER_HERE", "var map="+that.mapper+";");
 
-		     if(that.setupFn != null)
-			 data = data.replace("//@LOCALS_HERE","var _that=this;("+that.setupFn.toString().replace(/global/g,"_that")+")();");
+		 if(that.setupFn != null)
+		     data = data.replace("//@LOCALS_HERE","var _that=this;("+that.setupFn.toString().replace(/global/g,"_that")+")();");
 
-		     fs.writeFile(that.mapperPath, data, function (err) {
-			 if(err) {
-			     cb(err);
-			 }  else {
+		 fs.writeFileSync(that.mapperPath, data, "utf8");
+		 
+		 data = fs.readFileSync(__dirname+"/timothy/reducer_template.js", "utf8");
+		 data = data.replace("//@REDUCER_HERE", "var reduce="+that.reducer+";");
 
-			     fs.readFile(__dirname+"/timothy/reducer_template.js", function (err, data) {
-				 data = data.toString().replace("//@REDUCER_HERE", "var reduce="+that.reducer+";");
+		 if(that.setupFn != null)
+		     data = data.replace("//@LOCALS_HERE","var _that=this; ("+that.setupFn.toString().replace(/global/g,"_that")+")();");
 
-				 if(that.setupFn != null)
-				     data = data.replace("//@LOCALS_HERE","var _that=this; ("+that.setupFn.toString().replace(/global/g,"_that")+")();");
-
-				 fs.writeFile(that.reducerPath, data, function (err) {
-				     if(err) {
-					 cb(err);
-				     }  else {
-
-					 that.generatePackageDotJSON(function(error){
-					     if(error) {
-						 cb(error, that);
-					     } else {
-						 that.installLocalModules(function(error) {
-						     if(error) {
-							 cb(error, that);
-						     } else {
-							 that.generateShellScripts(function(error){
-							     if(error) {
-								 cb(error, that);							 
-							     } else {
-								 that.compressFiles(function(error){
-								     cb(error, that);
-								 });
-							     }
-							 });
-						     }
-						 });
-					     }
+		 fs.writeFileSync(that.reducerPath, data, "utf8");
+		 
+		 that.generatePackageDotJSON(function(error){
+		     if(error) {
+			 cb(error, that);
+		     } else {
+			 that.installLocalModules(function(error) {
+			     if(error) {
+				 cb(error, that);
+			     } else {
+				 that.generateShellScripts(function(error){
+				     if(error) {
+					 cb(error, that);							 
+				     } else {
+					 that.compressFiles(function(error){
+					     cb(error, that);
 					 });
-
 				     }
 				 });
-			     });
-
-			 }
-		     });	
+			     }
+			 });
+		     }
 		 });
 	     }
 	 });

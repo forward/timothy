@@ -16,7 +16,7 @@
     };
 
 
-    var mapKeyValue = function(line) {
+    var ___mapKeyValue = function(line) {
 	if(line.length === 0)
 	    return;
 	if(map.length === 1) {
@@ -35,23 +35,23 @@
 
     //@MAPPER_HERE
 
-    var acum = "";
+    var ___acum = "";
     process.stdin.on('data', function(data) {
-	acum = acum + data;
-	if(acum.indexOf("\n") !== -1) {
-	    var parts = acum.split("\n");
-	    var maxIter = (acum[acum.length-1] === "\n" ? parts.length : parts.length-1);
-	    var rest  = (acum[acum.length-1] === "\n" ? "" : parts[parts.length-1]);
+	___acum = ___acum + data;
+	if(___acum.indexOf("\n") !== -1) {
+	    var parts = ___acum.split("\n");
+	    var maxIter = (___acum[___acum.length-1] === "\n" ? parts.length : parts.length-1);
+	    var rest  = (___acum[___acum.length-1] === "\n" ? "" : parts[parts.length-1]);
 	    for(var i=0; i<maxIter; i++) {
-		mapKeyValue(parts[i]);
+		___mapKeyValue(parts[i]);
 	    }
-	    acum = rest;
+	    ___acum = rest;
 	}
     });
 
     process.stdin.on('end', function() {
-	if (acum.length > 0)
-	    mapKeyValue(acum);
+	if (___acum.length > 0)
+	    ___mapKeyValue(___acum);
     });
 
     process.stdin.setEncoding('utf8');
