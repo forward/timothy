@@ -7,13 +7,11 @@ require('../index')
         cmdenv: "var=",
 	"mapred.map.tasks": 10
     })
-    .dependencies({"node-uuid":"1.3.3"})
     .setup(function() {
 	global.x = 0;
 	global.inc = function() {
 	    global.x = global.x + 1;
 	};
-	global.uuid =require('node-uuid');
 	updateStatus("setup...");
     })
     .map(function(line){
@@ -27,11 +25,17 @@ require('../index')
     .reduce(function(word,counts){
 	updateStatus("reducing "+word);
 	emit(word, counts.length);
-        emit(uuid.v1(),"10000000");
     })
-    // .run(function(err){
-    // 	     console.log("**FINISHED");
-    // 	     if (err !== null)
-    // 		 console.log(err);
-    // });
-    .runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt");
+    .map(function(word, count){
+	if (parseInt(count) > 1)
+	    emit(word, count);
+    })
+    .reduce(function(word, counts) {
+	emit(word, counts[0]);
+    })
+    .run(function(err){
+	     console.log("**FINISHED");
+	     if (err !== null)
+		 console.log(err);
+    });
+    //.runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt");

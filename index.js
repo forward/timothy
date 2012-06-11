@@ -1,13 +1,40 @@
-
 var fs = require('fs');
 var exec = require('child_process').exec;
+
+Utils = {};
+Utils.stackCounterLimit = 1000;
+Utils.stackCounter = 0;
+
+Utils.recur = function(c){
+    if(Utils.stackCounter === Utils.stackCounterLimit) {
+        Utils.stackCounter = 0;
+        setTimeout(c, 0);
+    } else {
+        Utils.stackCounter++;
+        c();
+    }
+};
+
+Utils.repeat = function(c,max,floop,fend,env) {
+    if(arguments.length===4) { env = {}; }
+    if(c<max) {
+        env._i = c;
+        floop(function(floop,env){
+            // avoid stack overflow
+            // deadly hack
+            Utils.recur(function(){ Utils.repeat(c+1, max, floop, fend, env); });
+        },env);
+    } else {
+        fend(env);
+    }
+};
 
 var LocalDriver = function(jobDescription) {
     this.jobDescription = jobDescription;
 };
 
-LocalDriver.prototype.execute = function(cb) {
-    this.jobDescription.generate(function(err,job){
+LocalDriver.prototype.execute = function(i, cb) {
+    this.jobDescription.generate(i, function(err,job){
 	if(err) {
 	    cb(err, "Error generating map reduce scripts");
 	} else {
@@ -29,12 +56,14 @@ LocalDriver.prototype.execute = function(cb) {
 		    }
 		});
 	    });
-	}
+ 	}
     });
 };
 
 var JobDescription = function() { 
     this.filesToCompress = [];
+    this.mappers = [];
+    this.reducers = [];
 };
 
 /**
@@ -43,7 +72,7 @@ var JobDescription = function() {
 JobDescription.prototype.validate = function(cb) {
     console.log("** validating");
     var notifications = {errors:[], warnings:[]};
-    if(this.configuration.mapper == null)
+    if(this.mappers.length === 0)
 	notifications.errors.push("ERROR: No mapper function has been assigned");
 
     if(this.configuration.hadoopHome == null)
@@ -58,11 +87,12 @@ JobDescription.prototype.validate = function(cb) {
     // add more errors and warnings
 
     if(notifications.errors.length > 0) {
-	console.log("* validation ok");
-	cb(null, notifications)
-    } else {
 	console.log("* validation fail");
-	cb("Validation fail")
+	console.log(notifications.errors);
+	cb("Validation fail", notifications.errors);
+    } else {
+	console.log("* validation ok");
+	cb(null, notifications);
     }
 };
 
@@ -123,7 +153,12 @@ JobDescription.prototype.compressFiles = function(cb) {
 /**
  * Generates map/reduce scripts and package them
  */
-JobDescription.prototype.generate = function(cb) {
+JobDescription.prototype.generate = function(index, cb) {
+    console.log(arguments);
+    if(arguments.length === 1)
+	throw new Error("ONLY ONE ARG!!");
+    if(typeof(arguments[0]) === 'function')
+	throw new Error("FIRST ARG IS A FUNCTION SHOULD BE A NUMBER");	
     this.jobWorkingDirectory = "/tmp/timothy/"+this.configuration.name.replace(/[^a-zA-Z0-9]/g,"_").toLowerCase()+"_"+(new Date().getTime())+"_"+(Math.floor(Math.random() * 100000));
     this.mapperPath = this.jobWorkingDirectory+"/mapper.js";
     this.reducerPath = this.jobWorkingDirectory+"/reducer.js";
@@ -136,16 +171,19 @@ JobDescription.prototype.generate = function(cb) {
 	this.filesToCompress.push("node_modules");
     }
     console.log("* generated files in: "+this.jobWorkingDirectory);
-    
+
     var that = this;
+
     exec("mkdir -p "+this.jobWorkingDirectory, 
 	 function (error, stdout, stderr) {
 	     if (error !== null) {
 		 console.log('(!!) exec error: ' + error);
 		 cb(error);
 	     } else {
+		 console.log("Index: " + index);
+		 console.log(that.mappers);
 		 data = fs.readFileSync(__dirname+"/timothy/mapper_template.js", "utf8");
-		 data = data.replace("//@MAPPER_HERE", "var map="+that.mapper+";");
+		 data = data.replace("//@MAPPER_HERE", "var map="+that.mappers[index]+";");
 
 		 if(that.setupFn != null)
 		     data = data.replace("//@LOCALS_HERE","var _that=this;("+that.setupFn.toString().replace(/global/g,"_that")+")();");
@@ -153,7 +191,7 @@ JobDescription.prototype.generate = function(cb) {
 		 fs.writeFileSync(that.mapperPath, data, "utf8");
 		 
 		 data = fs.readFileSync(__dirname+"/timothy/reducer_template.js", "utf8");
-		 data = data.replace("//@REDUCER_HERE", "var reduce="+that.reducer+";");
+		 data = data.replace("//@REDUCER_HERE", "var reduce="+that.reducers[index]+";");
 
 		 if(that.setupFn != null)
 		     data = data.replace("//@LOCALS_HERE","var _that=this; ("+that.setupFn.toString().replace(/global/g,"_that")+")();");
@@ -185,11 +223,27 @@ JobDescription.prototype.generate = function(cb) {
 	 });
 };
 
+JobDescription.prototype.execute = function(index, cb) {
+    var jobName = this.configuration.name;
+    var input, output;
 
-JobDescription.prototype.execute = function(cb) {
+    if(this.mappers.length > 1)
+	jobName += " Stage " + index;
+
+    if(index > 0 && this.mappers.length > 1)
+	input = this.configuration.output + "_stage_" + (index - 1)
+    else 
+	input = this.configuration.input
+
+    if(index < (this.mappers.length -1) )
+	output = this.configuration.output + "_stage_" + index
+    else
+	output = this.configuration.output
+
     console.log("* executing");
     var command = this.configuration.hadoopHome+"/bin/hadoop jar "+this.configuration.hadoopHome+"/contrib/streaming/hadoop*streaming*.jar ";
-    command += "-D mapred.job.name='"+this.configuration.name+"' ";
+    command += "-D mapred.job.name='"+jobName+"' ";
+
     if(this.configuration.numMapTasks != null)
 	    command += "-D mapred.map.tasks="+this.configuration.numMapTasks+" ";
 
@@ -207,11 +261,11 @@ JobDescription.prototype.execute = function(cb) {
 	command += "-conf '"+this.configuration.config+"' ";
     command += "-inputformat '"+this.configuration.inputFormat+"' ";
     command += "-outputformat '"+this.configuration.outputFormat+"' ";
-    if(this.configuration.input.constructor === Array) {
-	for(var i=0; i<this.configuration.input.length; i++)
-	    command += "-input "+this.configuration.input[i]+" ";	    
+    if(input.constructor === Array) {
+	for(var i=0; i<input.length; i++)
+	    command += "-input "+input[i]+" ";	    
     } else {
-	command += "-input "+this.configuration.input+" ";
+	command += "-input "+input+" ";
     }
 
     if(this.configuration.combiner != null)
@@ -231,7 +285,7 @@ JobDescription.prototype.execute = function(cb) {
     var reducerScript = this.reducerPath.split("/");
     reducerScript = reducerScript[reducerScript.length-1]
     command += "-reducer 'reducer.sh' ";
-    command += "-output "+this.configuration.output+" ";
+    command += "-output "+output+" ";
 
     console.log("** executing Hadoop command:\n"+command);
 
@@ -255,10 +309,10 @@ timothy.configure = function(options) {
 	this.currentJob = new JobDescription();
 
     this.currentJob.configuration = options;
-    this.currentJob.configuration.inputFormat = "org.apache.hadoop.mapred.TextInputFormat"
-    this.currentJob.configuration.outputFormat = "org.apache.hadoop.mapred.TextOutputFormat"
+    this.currentJob.configuration.inputFormat = "org.apache.hadoop.mapred.TextInputFormat";
+    this.currentJob.configuration.outputFormat = "org.apache.hadoop.mapred.TextOutputFormat";
     if(this.currentJob.configuration.name == null)
-	this.currentJob.configuration.name = "Timothy's MapReduce Job"
+	this.currentJob.configuration.name = "Timothy's MapReduce Job";
     if(this.currentJob.configuration.hadoopHome == null)
 	this.currentJob.configuration.hadoopHome = process.env.HADOOP_HOME;
     return this;
@@ -297,7 +351,7 @@ timothy.map = function(mapFn) {
     if(this.currentJob === null)
 	this.currentJob = new JobDescription();
     
-    this.currentJob.mapper = mapFn.toString();
+    this.currentJob.mappers.push(mapFn.toString());
     return this;
 };
 
@@ -305,43 +359,61 @@ timothy.reduce = function(reduceFn) {
     if(this.currentJob === null)
 	this.currentJob = new JobDescription();
 
-    this.currentJob.reducer = reduceFn.toString();
+    this.currentJob.reducers.push(reduceFn.toString());
     return this;
 };
 
 timothy.run = function(cb) {
     var that = this;
+    var errors = []
+
     cb = (cb == null ? function(){} : cb);
 
     this.currentJob.validate(function(err, msg){
-	
 	if(err) {
 	    cb(err, msg);
 	} else {
-	    that.currentJob.generate(function(err, job){
-		if(err) {
-		    cb(err, job);
-		} else {
-		    job.execute(function(e,msg) {
-			if(e) {
-			    cb(e);
+	    Utils.repeat(0,that.currentJob.mappers.length,function(k,env) {
+		var floop = arguments.callee;
+		if(errors.length == 0) {
+		    var i = env._i;
+
+		    that.currentJob.generate(i, function(err, job){
+			if(err) {
+			    errors.push(err);
+			    k(floop,env);
 			} else {
-			    exec("rm -rf "+that.currentJob.jobWorkingDirectory, function(error, stdout, stderr) {
-			     
-				if (error !== null) {
-				    console.log('exec error: ' + error);
-				    cb(error, "error removing tmp directory "+that.currentJob.jobWorkingDirectory+" : "+error);
+			    job.execute(i, function(e,msg) {
+				if(e) {
+				    errors.push(e);
+				    k(floop,env);
 				} else {
-				    // ready to process another job
-				    that.currentJob = null;
-				    // normal return
-				    cb(null);
-			      }
+				    exec("rm -rf "+that.currentJob.jobWorkingDirectory, function(error, stdout, stderr) {
+					if (error !== null) {
+					    console.log('exec error: ' + error);
+					    errors.push("error removing tmp directory "+that.currentJob.jobWorkingDirectory+" : "+error);
+					}
+					// success
+					k(floop,env);
+				    });
+				}
 			    });
 			}
 		    });
+		} else {
+		    k(floop,env);
 		}
-	    });
+	    },
+	    function(env) {
+		that.currentJob = null;
+		if (errors.length === 0)
+		    cb(null);
+		else
+		    cb(errors)
+	    })
+	    //for(var i=0; i<that.currentJob.mappers.length; i++) {
+	    //}
+	    // ready to process another job
 	}
     });
 };
@@ -360,5 +432,5 @@ timothy.runLocal = function(inputPath, cb) {
     }
 	
     var driver = new LocalDriver(this.currentJob);
-    driver.execute(cb);
+    driver.execute(0,cb);
 };
