@@ -33,19 +33,27 @@ var LocalDriver = function(jobDescription) {
     this.jobDescription = jobDescription;
 };
 
-LocalDriver.prototype.execute = function(i, cb) {
+LocalDriver.prototype.execute = function(i, input, output, cb) {
     this.jobDescription.generate(i, function(err,job){
 	if(err) {
 	    cb(err, "Error generating map reduce scripts");
 	} else {
-	    var command = "cd "+job.jobWorkingDirectory+" && mkdir ./.npmcfg && npm config set userconfig ./.npmcfg && npm config set cache . &&  npm install > /dev/null && cat "+job.configuration.input+" | node "+job.mapperPath+" | node "+ __dirname+"/timothy/local_sorter.js | node "+job.reducerPath;
+	    var command;
+	    var setup = "";
+	    if(i==0)
+		setup = " && mkdir ./.npmcfg && npm config set userconfig ./.npmcfg && npm config set cache . &&  npm install > /dev/null"
+	    if(output === null) {
+		command = "cd "+job.jobWorkingDirectory+setup+" && cat "+input+" | node "+job.mapperPath+" | node "+ __dirname+"/timothy/local_sorter.js | node "+job.reducerPath;
+	    } else {
+		command = "cd "+job.jobWorkingDirectory+setup+" && cat "+input+" | node "+job.mapperPath+" | node "+ __dirname+"/timothy/local_sorter.js | node "+job.reducerPath +" > "+output;
+	    }
 	    console.log("** executing test command:\n"+command);
 	    exec(command, function(e, stdout, stderr) {
 
-		console.log("\n\n*** OUTPUT:\n");
-		console.log(stdout);
 		console.log("*** ERROR:\n");
 		console.log(stderr);
+		console.log("\n\n*** OUTPUT:\n");
+		console.log(stdout);
 				
 		exec("rm -rf "+job.jobWorkingDirectory, function(error, stdout, stderr) {
 		    if (error !== null) {
@@ -154,11 +162,6 @@ JobDescription.prototype.compressFiles = function(cb) {
  * Generates map/reduce scripts and package them
  */
 JobDescription.prototype.generate = function(index, cb) {
-    console.log(arguments);
-    if(arguments.length === 1)
-	throw new Error("ONLY ONE ARG!!");
-    if(typeof(arguments[0]) === 'function')
-	throw new Error("FIRST ARG IS A FUNCTION SHOULD BE A NUMBER");	
     this.jobWorkingDirectory = "/tmp/timothy/"+this.configuration.name.replace(/[^a-zA-Z0-9]/g,"_").toLowerCase()+"_"+(new Date().getTime())+"_"+(Math.floor(Math.random() * 100000));
     this.mapperPath = this.jobWorkingDirectory+"/mapper.js";
     this.reducerPath = this.jobWorkingDirectory+"/reducer.js";
@@ -180,8 +183,6 @@ JobDescription.prototype.generate = function(index, cb) {
 		 console.log('(!!) exec error: ' + error);
 		 cb(error);
 	     } else {
-		 console.log("Index: " + index);
-		 console.log(that.mappers);
 		 data = fs.readFileSync(__dirname+"/timothy/mapper_template.js", "utf8");
 		 data = data.replace("//@MAPPER_HERE", "var map="+that.mappers[index]+";");
 
@@ -432,5 +433,42 @@ timothy.runLocal = function(inputPath, cb) {
     }
 	
     var driver = new LocalDriver(this.currentJob);
-    driver.execute(0,cb);
+    var tmpDirectory = "/tmp/"+(new Date().getTime())+"_"+(Math.floor(Math.random() * 100000))+"local_timothy_run";
+    var foundError = null;
+    var that = this;
+
+    exec("mkdir "+tmpDirectory, function(e, stdout, stderr) {
+	if(e!=null) {
+	    cb(e,"Unable to create temporary directory");
+	} else {
+
+	    Utils.repeat(0,that.currentJob.mappers.length, function(k,env) {
+		if(foundError === null) {
+		    var index = env._i;
+		    var floop = arguments.callee;
+		    var input,output;
+		    
+		    if(index > 0 && that.currentJob.mappers.length > 1)
+			input = tmpDirectory + "/stage_" + (index - 1)
+		    else 
+			input = that.currentJob.configuration.input
+
+		    if(index < (that.currentJob.mappers.length -1) )
+			output = tmpDirectory + "/stage_" + index
+		    else
+			output = null
+
+		    driver.execute(index,input,output,function(err){
+			foundError = err;
+			k(floop, env);
+		    });
+		} else {
+		    k(floop,env);
+		}
+	    }, function(env) {
+		cb(foundError, (foundError === null ? "" : "There was an error executing the jobs"));
+	    });
+
+	}
+    });
 };

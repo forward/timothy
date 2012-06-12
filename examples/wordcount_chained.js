@@ -33,9 +33,14 @@ require('../index')
     .reduce(function(word, counts) {
 	emit(word, counts[0]);
     })
-    .run(function(err){
-	     console.log("**FINISHED");
-	     if (err !== null)
-		 console.log(err);
+    //.run(function(err){
+    // 	     console.log("**FINISHED");
+    // 	     if (err !== null)
+    // 		 console.log(err);
+    //});
+    .runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt", function(e,msg){
+	if(e)
+	    console.log("ERROR: "+e+" -> "+msg);
+	else
+	    console.log("OK");
     });
-    //.runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt");
