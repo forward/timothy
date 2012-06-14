@@ -9,11 +9,11 @@ require('../index')
     })
     .dependencies({"node-uuid":"1.3.3"})
     .setup(function() {
-	global.x = 0;
-	global.inc = function() {
-	    global.x = global.x + 1;
+	x = 0;
+	inc = function() {
+	    x = x + 1;
 	};
-	global.uuid =require('node-uuid');
+	uuid =require('node-uuid');
 	updateStatus("setup...");
     })
     .map(function(line){
@@ -29,9 +29,9 @@ require('../index')
 	emit(word, counts.length);
         emit(uuid.v1(),"10000000");
     })
-    // .run(function(err){
-    // 	     console.log("**FINISHED");
-    // 	     if (err !== null)
-    // 		 console.log(err);
-    // });
-    .runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt");
+    .run(function(err){
+	     console.log("**FINISHED");
+	     if (err !== null)
+		 console.log(err);
+    });
+    //.runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt");
