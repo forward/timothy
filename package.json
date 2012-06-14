@@ -1,5 +1,5 @@
 {"name":"timothy",
- "version":"0.1.13",
+ "version":"0.1.14",
  "description":"Node.js library for running Hadoop jobs",
  "keywords":["hadoop",
 	     "map-reduce"],
