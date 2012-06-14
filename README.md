@@ -63,12 +63,11 @@ Timothy's primary goal is to make Hadoop's Yellow Elephant rich and famous.
              output: "/processed_"+(new Date().getTime()),
              name:   "Timothy Word Count Example"
         })
-        // variables and functions added to the global object will be available
-        // in the map and reduce functions
+        // global variables and functions will be available in the map and reduce functions
         .setup(function(){
-            global.x = 0;
-            global.inc = function() {
-                global.x = global.x + 1;
+            x = 0;
+            inc = function() {
+                x = x + 1;
             };
         })
         .map(function(line){
@@ -130,7 +129,7 @@ Timothy's primary goal is to make Hadoop's Yellow Elephant rich and famous.
         .dependencies({"node-uuid":"1.3.3"})
         .setup(function(){
             // libraries can be required in the setup function
-            global.uuid = require('node-uuid');
+            uuid = require('node-uuid');
         })
         .map(function(line){
             var words = line.split(" ");

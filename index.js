@@ -187,7 +187,7 @@ JobDescription.prototype.generate = function(index, cb) {
 		 data = data.replace("//@MAPPER_HERE", "var map="+that.mappers[index]+";");
 
 		 if(that.setupFn != null)
-		     data = data.replace("//@LOCALS_HERE","var _that=this;("+that.setupFn.toString().replace(/global/g,"_that")+")();");
+		     data = data.replace("//@LOCALS_HERE","("+that.setupFn.toString()+")();");
 
 		 fs.writeFileSync(that.mapperPath, data, "utf8");
 		 
@@ -195,7 +195,7 @@ JobDescription.prototype.generate = function(index, cb) {
 		 data = data.replace("//@REDUCER_HERE", "var reduce="+that.reducers[index]+";");
 
 		 if(that.setupFn != null)
-		     data = data.replace("//@LOCALS_HERE","var _that=this; ("+that.setupFn.toString().replace(/global/g,"_that")+")();");
+		     data = data.replace("//@LOCALS_HERE","("+that.setupFn.toString()+")();");
 
 		 fs.writeFileSync(that.reducerPath, data, "utf8");
 		 
