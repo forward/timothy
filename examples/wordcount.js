@@ -35,3 +35,5 @@ require('../index')
 		 console.log(err);
     });
     //.runLocal("/Users/abhinay/work/timothy/examples/loremipsum.txt");
+
+console.log("I should be seen straight away!");
