@@ -108,7 +108,7 @@ JobDescription.prototype.generate = function(index, cb) {
     }
     console.log("* generated files in: "+this.jobWorkingDirectory);
 
-    var that = this;
+    var that = this, data;
 
     exec("mkdir -p "+this.jobWorkingDirectory, 
 	 function (error, stdout, stderr) {
@@ -117,18 +117,18 @@ JobDescription.prototype.generate = function(index, cb) {
 		 cb(error);
 	     } else {
 		 data = fs.readFileSync(__dirname+"/timothy/mapper_template.js", "utf8");
-		 data = data.replace("//@MAPPER_HERE", "var map="+that.mappers[index]+";");
+		 data = data.replace("//@MAPPER_HERE", "this.map="+that.mappers[index]+";");
 
 		 if(that.setupFn != null)
-		     data = data.replace("//@LOCALS_HERE","("+that.setupFn.toString()+")();");
+		     data = data.replace("//@LOCALS_HERE","this.setup = "+that.setupFn.toString()+"; setup();");
 
 		 fs.writeFileSync(that.mapperPath, data, "utf8");
 		 
 		 data = fs.readFileSync(__dirname+"/timothy/reducer_template.js", "utf8");
-		 data = data.replace("//@REDUCER_HERE", "var reduce="+that.reducers[index]+";");
+		 data = data.replace("//@REDUCER_HERE", "this.reduce="+that.reducers[index]+";");
 
 		 if(that.setupFn != null)
-		     data = data.replace("//@LOCALS_HERE","("+that.setupFn.toString()+")();");
+		     data = data.replace("//@LOCALS_HERE","this.setup = "+that.setupFn.toString()+"; setup();");
 
 		 fs.writeFileSync(that.reducerPath, data, "utf8");
 		 

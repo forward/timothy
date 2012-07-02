@@ -3,21 +3,20 @@
 //@REQUIRES_HERE
 
 (function() {
+     this.emit = function(){
+	 var acum = [];
+	 for(var i=0; i<arguments.length; i++)
+	     acum.push(arguments[i]);
+	 process.stdout.write(acum.join("\t")+"\n");  	    
+     };
 
-    var emit = function() {
-	var acum = [];
-	for(var i=0; i<arguments.length; i++)
-	    acum.push(arguments[i]);
-	process.stdout.write(acum.join("\t")+"\n");  	    
-    };
+     this.updateCounter = function(group, counter, amout) {
+	 process.stderr.write("reporter:counter:"+group+","+counter+","+amout);
+     };
 
-    var updateCounter = function(group, counter, amout) {
-	process.stderr.write("reporter:counter:"+group+","+counter+","+amout);
-    };
-
-    var updateStatus = function(message) {
-	process.stderr.write("reporter:status:"+message);
-    };
+     this.updateStatus = function(message) {
+	 process.stderr.write("reporter:status:"+message);
+     };
 
     //@LOCALS_HERE
 
@@ -42,7 +41,7 @@
 
 		    if(___currentKey != key) {
 			if(___currentKey != null)
-			    reduce(___currentKey, ___currentBatch);
+			    reduce( ___currentKey, ___currentBatch);
 			___currentKey = key;
 			___currentBatch = [value];
 		    } else

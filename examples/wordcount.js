@@ -14,20 +14,21 @@ require('../index')
 	    x = x + 1;
 	};
 	uuid =require('node-uuid');
-	updateStatus("setup...");
+	this.updateStatus("setup...");
     })
     .map(function(line){
 	var words = line.split(" ");
 
 	for(var i=0; i<words.length; i++) {
-	    updateStatus("mapping "+i);
-	    inc(); emit(words[i], x);
+	    this.updateStatus("mapping "+i);
+	    inc(); 
+	    this.emit(words[i], x);
 	}
     })
-    .reduce(function(word,counts){
-	updateStatus("reducing "+word);
-	emit(word, counts.length);
-        emit(uuid.v1(),"10000000");
+    .reduce(function(word, counts){
+	this.updateStatus("reducing "+word);
+	this.emit(word, counts.length);
+        this.emit(uuid.v1(),"10000000");
     })
     .run(function(err){
 	     console.log("**FINISHED");

@@ -3,18 +3,18 @@
 //@REQUIRES_HERE
 
 (function(){
-    var emit = function(key, value){
+
+     this.emit = function(key, value){
 	process.stdout.write(key + "\t" + value + "\n");  
-    };
+     };
 
-    var updateCounter = function(group, counter, amout) {
-	process.stderr.write("reporter:counter:"+group+","+counter+","+amout);
-    };
+     this.updateCounter = function(group, counter, amout) {
+	 process.stderr.write("reporter:counter:"+group+","+counter+","+amout);
+     };
 
-    var updateStatus = function(message) {
-	process.stderr.write("reporter:status:"+message);
-    };
-
+     this.updateStatus = function(message) {
+	 process.stderr.write("reporter:status:"+message);
+     };
 
     var ___mapKeyValue = function(line) {
 	if(line.length === 0)

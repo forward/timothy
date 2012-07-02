@@ -25,11 +25,11 @@ Timothy's primary goal is to make Hadoop's Yellow Elephant rich and famous.
         .map(function(line){
             var words = line.split(" ");
             for(var i=0; i<words.length; i++)
-                emit(words[i], 1); // emit is used to generate output
+                this.emit(words[i], 1); // this.emit is used to generate output
         })
         // reduce function: two arguments (key, value)
         .reduce(function(word,counts){
-            emit(word, counts.length);
+            emit(word, counts.length); // emit is part of object so can be called without the 'this' qualification
         })
         // run function, creates the job, uploads it and blocks until 
         // the execution has finished
@@ -43,10 +43,10 @@ Timothy's primary goal is to make Hadoop's Yellow Elephant rich and famous.
         .map(function(line){
             var words = line.split(" ");
             for(var i=0; i<words.length; i++)
-                emit(words[i], 1);
+                this.emit(words[i], 1);
         })
         .reduce(function(word,counts){
-            emit(word, counts.length);
+            this.emit(word, counts.length);
         })
         // runLocal can be used instead of run to simulate the job execution 
         // from the command line
@@ -74,11 +74,11 @@ Timothy's primary goal is to make Hadoop's Yellow Elephant rich and famous.
             var words = line.split(" ");
             for(var i=0; i<words.length; i++) {
                 inc();
-                emit(words[i], x);
+                this.emit(words[i], x);
             }
         })
         .reduce(function(word,counts){
-            emit(word, counts.length);
+            this.emit(word, counts.length);
         })
         .run();
 ```
@@ -103,11 +103,11 @@ Timothy's primary goal is to make Hadoop's Yellow Elephant rich and famous.
                 var offset1 = parseInt(process.env['offset1']);
                 var words = line.split(" ");
                 for(var i=0; i<words.length; i++)
-                    emit(words[i], 1+offset1);
+                    this.emit(words[i], 1+offset1);
             })
             .reduce(function(word,counts){
                 var offset2 = parseInt(process.env['offset2']);
-                emit(word, counts.length+offset2);
+                this.emit(word, counts.length+offset2);
             })
             .run();
 
@@ -134,19 +134,19 @@ Timothy's primary goal is to make Hadoop's Yellow Elephant rich and famous.
         .map(function(line){
             var words = line.split(" ");
             for(var i=0; i<words.length; i++) {
-                   emit(words[i], 1);
+                   this.emit(words[i], 1);
             }
         })
         .reduce(function(word,counts){
-            emit(word, counts.length);
-            emit(uuid.v1(),"10000000");
+            this.emit(word, counts.length);
+            this.emit(uuid.v1(),"10000000");
         })
         .run();
 ```
 
 ## Status and counters
 
-Status and counters for the job can be updated using the *updateStatus* and *updateCounter* functions.
+Status and counters for the job can be updated using the *this.updateStatus* and *this.updateCounter* functions.
 
 ## Caveats
 
