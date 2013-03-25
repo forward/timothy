@@ -155,7 +155,7 @@ timothy.runLocal = function(inputPath, cb) {
 		    if(index < (that.currentJob.mappers.length -1) )
 			output = tmpDirectory + "/stage_" + index;
 		    else
-			output = null;
+			output = that.currentJob.configuration.output;
 
 		    driver.execute(index,input,output,function(err){
 			foundError = err;
@@ -167,7 +167,6 @@ timothy.runLocal = function(inputPath, cb) {
 	    }, function(env) {
 		cb(foundError, (foundError === null ? "" : "There was an error executing the jobs"));
 	    });
-
 	}
     });
 };
