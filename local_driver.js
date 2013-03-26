@@ -22,9 +22,9 @@ LocalDriver.prototype.execute = function(i, input, output, cb) {
 	    if(i==0)
 		setup = " && mkdir ./.npmcfg && npm config set userconfig ./.npmcfg && npm config set cache . &&  npm install > /dev/null";
 	    if(output === null) {
-		command = "cd "+job.jobWorkingDirectory+setup+" && cat "+input+inputPostfix+" | "+ cmdenv +" node "+job.mapperPath+" | node "+ __dirname+"/timothy/local_sorter.js | "+ cmdenv +" node "+job.reducerPath;
+		command = "cd "+job.jobWorkingDirectory+setup+" && cat "+input+inputPostfix+" | "+ cmdenv +" node "+job.mapperPath+" | sort | "+ cmdenv +" node "+job.reducerPath;
 	    } else {
-		command = "cd "+job.jobWorkingDirectory+setup+" && cat "+input+inputPostfix+" | "+ cmdenv +" node "+job.mapperPath+" | node "+ __dirname+"/timothy/local_sorter.js | "+ cmdenv +" node "+job.reducerPath +" > "+output;
+		command = "cd "+job.jobWorkingDirectory+setup+" && cat "+input+inputPostfix+" | "+ cmdenv +" node "+job.mapperPath+" | sort | "+ cmdenv +" node "+job.reducerPath +" > "+output;
 	    }
 	    console.log("** executing test command:\n"+command);
 	    exec(command, function(e, stdout, stderr) {
